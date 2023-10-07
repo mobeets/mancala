@@ -140,23 +140,25 @@ class MCTSAgent:
                 payout = self.get_return(data, state[-1])
                 payouts.append(payout)
             mean_payouts.append(np.mean(payouts))
-        return actions[np.argmax(mean_payouts)]
+        return actions[np.argmax(mean_payouts)], np.max(mean_payouts)
 
     def get_action(self, state):
-        return self.mcts(state)
+        action, prob = self.mcts(state)
+        print('CPU win belief: {}%'.format(int(100*prob)))
+        return action
 
 class HumanAgent:
     def get_action(self, state):
         actions = [Mancala.bin_to_letter(i) for i in Mancala.get_valid_actions(state)]
         action = -1
         while action not in actions:
-            action = input("player {}'s next move? ({}): ".format(int(state[-1]), ''.join(actions)))
+            action = input("player {}'s next move? ({}): ".format(int(state[-1]), ''.join(actions))).upper()
         return Mancala.letter_to_bin(action)
 
 def play(userGoesFirst=False):
     env = Mancala(render_mode='human', render_unicode=True)
     user = HumanAgent()
-    cpu = MCTSAgent()
+    cpu = MCTSAgent(nsamples=3000)
 
     state, _ = env.reset()
     terminated = False

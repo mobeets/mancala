@@ -168,14 +168,14 @@ class Mancala:
 
         # print game board
         line0 = ' '*5 + ' '.join([Mancala.bin_to_letter(i) for i in range(12,6,-1)])
-        line1 = ' '*5 + ' '.join([Mancala.count_to_char(self.state[i], unicode) for i in range(12,6,-1)])
-        line2 = str(int(self.state[13])) + ' '*20 + str(int(self.state[6]))
-        line3 = ' '*5 + ' '.join([Mancala.count_to_char(self.state[i], unicode) for i in range(0,6)])
+        line1 = ' '*5 + ' '.join([Mancala.count_to_char(state[i], unicode) for i in range(12,6,-1)])
+        line2 = str(int(state[13])) + ' '*20 + str(int(state[6]))
+        line3 = ' '*5 + ' '.join([Mancala.count_to_char(state[i], unicode) for i in range(0,6)])
         line4 = ' '*5 + ' '.join([Mancala.bin_to_letter(i) for i in range(0,6)])
         out = ' '*10 + '←\n'
         out += '\n'.join([line0, line1, line2, line3, line4])
         out += '\n' + ' '*10 + '→\n'
-        out += '\n\nplayer {} to move'.format(int(self.state[-1]))
+        out += '\n\nplayer {} to move'.format(int(state[-1]))
 
         # print winner
         if Mancala.is_terminated(state):
