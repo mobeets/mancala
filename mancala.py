@@ -10,6 +10,7 @@ class Mancala:
         self.render_mode = render_mode
         self.observation_space = None # todo
         self.action_space = None # todo
+        self.index = 0
 
     def initial_game_state(self):
         # encoding:
@@ -27,6 +28,7 @@ class Mancala:
 
     def reset(self, seed=None, options=None):
         self.state = self.initial_game_state()
+        self.index = 0
         if self.render_mode == "human":
             self.render(unicode=self.render_unicode)
         return self.state, {}
@@ -93,6 +95,7 @@ class Mancala:
 
     def step(self, action):
         self.state = Mancala.next_state(self.state, action)
+        self.index += 1
         terminated = Mancala.is_terminated(self.state)
         reward = 0 # todo
         if self.render_mode == "human":
