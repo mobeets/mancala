@@ -105,14 +105,15 @@ class HeuristicAgent:
 # MCTS
 
 class MCTSAgent:
-    def __init__(self, nsamples=100):
+    def __init__(self, nsamples=1000):
         self.nsamples = nsamples
 
     def get_rollout_policy_action(self, state):
-        pass
+        actions = Mancala.get_valid_actions(state)
+        return np.random.choice(actions)
 
     def rollout(self, state, action):
-        terminated = True
+        terminated = False
         i = 0
         data = [state]
         while not terminated:
@@ -120,6 +121,7 @@ class MCTSAgent:
                 action = self.get_rollout_policy_action(state)
             state = Mancala.next_state(state, action)
             data.append(state)
+            terminated = Mancala.is_terminated(state)
             i += 1
         return data
 
@@ -128,20 +130,20 @@ class MCTSAgent:
         assert Mancala.is_terminated(final_state)
         return 1 if Mancala.get_winner(final_state) == player_num else 0
 
-    def mcts(self, state, nsamples):
+    def mcts(self, state):
         actions = Mancala.get_valid_actions(state)
         mean_payouts = []
         for action in actions:
             payouts = []
-            for _ in range(nsamples):
-                data = rollout(state, action, depth, nsamples)
+            for _ in range(self.nsamples):
+                data = self.rollout(state, action)
                 payout = self.get_return(data, state[-1])
                 payouts.append(payout)
             mean_payouts.append(np.mean(payouts))
         return actions[np.argmax(mean_payouts)]
 
     def get_action(self, state):
-        return self.mcts(state, self.nsamples)
+        return self.mcts(state)
 
 class HumanAgent:
     def get_action(self, state):
@@ -154,7 +156,8 @@ class HumanAgent:
 def play(userGoesFirst=False):
     env = Mancala(render_mode='human', render_unicode=True)
     user = HumanAgent()
-    cpu = HeuristicAgent()
+    cpu = MCTSAgent()
+
     state, _ = env.reset()
     terminated = False
 
@@ -168,7 +171,7 @@ def play(userGoesFirst=False):
 if __name__ == "__main__":
     import sys
     try:
-        userGoesFirst = int(sys.argv[1])
+        userGoesFirst = int(sys.argv[1]) == 1
     except:
         userGoesFirst = True
     play(userGoesFirst)
