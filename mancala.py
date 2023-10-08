@@ -12,7 +12,8 @@ class Mancala:
         self.action_space = None # todo
         self.index = 0
 
-    def initial_game_state(self):
+    @staticmethod
+    def initial_game_state():
         # encoding:
         #   0  1  2   3  4  5  6  7  8  9  10  11  12 13 14
         #   B1 B2 B3 B4 B5 B6 M1 B7 B8 B9 B10 B11 B12 M2 P
@@ -27,7 +28,7 @@ class Mancala:
         return state.tolist()
 
     def reset(self, seed=None, options=None):
-        self.state = self.initial_game_state()
+        self.state = Mancala.initial_game_state()
         self.index = 0
         if self.render_mode == "human":
             self.render(unicode=self.render_unicode)
@@ -182,7 +183,9 @@ class Mancala:
 
         # print winner
         if Mancala.is_terminated(state):
-            out += "\nplayer {} wins: {}".format(Mancala.get_winner(state), Mancala.get_current_scores(state))
-
+            winner = Mancala.get_winner(state)
+            if winner != 0:
+                out += "\nplayer {} wins: {}".format(winner, Mancala.get_current_scores(state))
+            else:
+                out += '\nplayers tied!'
         print(out)
-        return out

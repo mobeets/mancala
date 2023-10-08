@@ -2,6 +2,7 @@ from mancala import Mancala
 import numpy as np
 import matplotlib.pyplot as plt
 from agent import MonteCarloRolloutAgent
+from mmcts import MCTSMancalaAgent
 
 class HumanAgent:
     def get_action(self, state, index=None):
@@ -14,12 +15,16 @@ class HumanAgent:
 def get_players(player1, player2, verbose, nsamples):
     if player1 == 'human':
         player1 = HumanAgent()
-    else:
+    elif player1 == 'mcrollout':
         player1 = MonteCarloRolloutAgent(name='P1', nsamples=nsamples, verbose=verbose)
+    else:
+        player1 = MCTSMancalaAgent(timeLimit=nsamples)
     if player2 == 'human':
         player2 = HumanAgent()
-    else:
+    elif player2 == 'mcrollout':
         player2 = MonteCarloRolloutAgent(name='P2', nsamples=nsamples, verbose=verbose)
+    else:
+        player2 = MCTSMancalaAgent(timeLimit=nsamples)
     return [player1, player2]
 
 def plot(players):
@@ -46,13 +51,18 @@ def play(player1, player2, nsamples, verbose=True):
         action = players[int(state[-1])-1].get_action(state, index=env.index)
         state, _, terminated, _, _ = env.step(action)
 
-    plot(players)    
+        # update mcts tree
+        for player in players:
+            if hasattr(player, 'update'):
+                player.update(action)
+
+    # plot(players)
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('player1', choices=['human', 'cpu'])
-    parser.add_argument('player2', choices=['human', 'cpu'])
+    parser.add_argument('player1', choices=['human', 'mcrollout', 'mcts'])
+    parser.add_argument('player2', choices=['human', 'mcrollout', 'mcts'])
     parser.add_argument('--nsamples', type=int, default=3000)
     args = parser.parse_args()
     play(args.player1, args.player2, nsamples=args.nsamples)
