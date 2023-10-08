@@ -2,6 +2,11 @@ from mancala import Mancala
 import numpy as np
 
 class MonteCarloRolloutAgent:
+    """
+    Pure Monte Carlo Rollouts:
+    - given a state, performs N rollouts starting from each available action
+    and then chooses the action that led to the best average return
+    """
     def __init__(self, name=None, nsamples=1000, verbose=False):
         self.name = name
         self.nsamples = nsamples
@@ -28,7 +33,8 @@ class MonteCarloRolloutAgent:
     def get_return(self, data, player_num):
         final_state = data[-1]
         assert Mancala.is_terminated(final_state)
-        return 1 if Mancala.get_winner(final_state) == player_num else 0
+        winner = Mancala.get_winner(final_state)
+        return 1 if winner == player_num else (0.5 if winner < 0 else 0)
 
     def find_best_action(self, state):
         actions = Mancala.get_valid_actions(state)

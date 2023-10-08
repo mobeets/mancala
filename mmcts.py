@@ -1,7 +1,7 @@
 import random
 from copy import deepcopy
 from mancala import Mancala
-from mcts import mcts
+from mcts import MCTS
 
 class MCTSMancalaNode:
     def __init__(self):
@@ -26,9 +26,9 @@ class MCTSMancalaNode:
         return -(2*(winner-1)-1) if winner != 0 else 0
 
 class MCTSMancalaAgent:
-    def __init__(self, timeLimit=1000):
+    def __init__(self, **kwargs):
         self.node = MCTSMancalaNode()
-        self.searcher = mcts(timeLimit=timeLimit)
+        self.searcher = MCTS(**kwargs)
 
     def update(self, action):
         self.node = self.node.takeAction(action)

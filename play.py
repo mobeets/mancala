@@ -1,7 +1,7 @@
-from mancala import Mancala
 import numpy as np
 import matplotlib.pyplot as plt
-from agent import MonteCarloRolloutAgent
+from mancala import Mancala
+from mcr import MonteCarloRolloutAgent
 from mmcts import MCTSMancalaAgent
 
 class HumanAgent:
@@ -12,22 +12,19 @@ class HumanAgent:
             action = input("player {}'s next move? ({}): ".format(int(state[-1]), ''.join(actions))).upper()
         return Mancala.letter_to_bin(action)
 
-def get_players(player1, player2, verbose, nsamples):
-    if player1 == 'human':
-        player1 = HumanAgent()
-    elif player1 == 'mcrollout':
-        player1 = MonteCarloRolloutAgent(name='P1', nsamples=nsamples, verbose=verbose)
-    else:
-        player1 = MCTSMancalaAgent(timeLimit=nsamples)
-    if player2 == 'human':
-        player2 = HumanAgent()
-    elif player2 == 'mcrollout':
-        player2 = MonteCarloRolloutAgent(name='P2', nsamples=nsamples, verbose=verbose)
-    else:
-        player2 = MCTSMancalaAgent(timeLimit=nsamples)
-    return [player1, player2]
+def get_players(player_types, verbose, nsamples):
+    players = []
+    for i, player_type in enumerate(player_types):
+        if player_type == 'human':
+            player = HumanAgent()
+        elif player_type == 'mcr':
+            player = MonteCarloRolloutAgent(name='P{}'.format(i+1), nsamples=nsamples, verbose=verbose)
+        elif player_type == 'mcts':
+            player = MCTSMancalaAgent(iterationLimit=nsamples*6, exploitationWeight=0)
+        players.append(player)
+    return players
 
-def plot(players):
+def plot(players, outfile):
     import matplotlib.pyplot as plt
     if hasattr(players[0], 'estimated_win_percents'):
         pts1 = np.vstack(players[0].estimated_win_percents)
@@ -39,14 +36,14 @@ def plot(players):
     plt.ylabel('estimated win percent')
     plt.ylim([0, 100])
     plt.legend()
-    plt.savefig('plots/tmp.png')
+    plt.savefig(outfile)
 
-def play(player1, player2, nsamples, verbose=True):
+def play(player_types, nsamples, plotfile=None, verbose=True):
     env = Mancala(render_mode='human', render_unicode=True)
     state, _ = env.reset()
     terminated = False
 
-    players = get_players(player1, player2, verbose=verbose, nsamples=nsamples)
+    players = get_players(player_types, verbose=verbose, nsamples=nsamples)
     while not terminated:
         action = players[int(state[-1])-1].get_action(state, index=env.index)
         state, _, terminated, _, _ = env.step(action)
@@ -56,13 +53,15 @@ def play(player1, player2, nsamples, verbose=True):
             if hasattr(player, 'update'):
                 player.update(action)
 
-    # plot(players)
+    if plotfile:
+        plot(players, plotfile)
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('player1', choices=['human', 'mcrollout', 'mcts'])
-    parser.add_argument('player2', choices=['human', 'mcrollout', 'mcts'])
+    parser.add_argument('player1', choices=['human', 'mcr', 'mcts'])
+    parser.add_argument('player2', choices=['human', 'mcr', 'mcts'])
     parser.add_argument('--nsamples', type=int, default=3000)
+    parser.add_argument('--plotfile', type=str)
     args = parser.parse_args()
-    play(args.player1, args.player2, nsamples=args.nsamples)
+    play([args.player1, args.player2], nsamples=args.nsamples, plotfile=args.plotfile)
