@@ -14,13 +14,17 @@ class HumanAgent:
 
 def get_players(player_types, verbose, nsamples):
     players = []
+    if not hasattr(nsamples, '__iter__'):
+        nsamples = [nsamples]*len(player_types)
     for i, player_type in enumerate(player_types):
         if player_type == 'human':
             player = HumanAgent()
         elif player_type == 'mcr':
-            player = MonteCarloRolloutAgent(name='P{}'.format(i+1), nsamples=nsamples, verbose=verbose)
+            player = MonteCarloRolloutAgent(name='P{}'.format(i+1), nsamples=nsamples[i], verbose=verbose)
         elif player_type == 'mcts':
-            player = MCTSMancalaAgent(iterationLimit=nsamples*6, exploitationWeight=0)
+            # n.b. exploitationWeight==0 is essentially a rollout algorithm
+            # because we only select nodes based on avg return
+            player = MCTSMancalaAgent(iterationLimit=nsamples[i]*6, exploitationWeight=0)
         players.append(player)
     return players
 
@@ -38,8 +42,8 @@ def plot(players, outfile):
     plt.legend()
     plt.savefig(outfile)
 
-def play(player_types, nsamples, plotfile=None, verbose=True):
-    env = Mancala(render_mode='human', render_unicode=True)
+def play(player_types, nsamples, plotfile=None, verbose=True, render_mode='human'):
+    env = Mancala(render_mode=render_mode, render_unicode=True)
     state, _ = env.reset()
     terminated = False
 
@@ -55,6 +59,7 @@ def play(player_types, nsamples, plotfile=None, verbose=True):
 
     if plotfile:
         plot(players, plotfile)
+    return Mancala.get_winner(env.state)
 
 if __name__ == "__main__":
     import argparse
