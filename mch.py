@@ -79,26 +79,3 @@ class MonteCarloHeuristicRolloutAgent:
             pcts = np.round(100*probs,0)
             print('CPU({}) win belief: {}% ({})'.format(self.name, pct, pcts))
         return action
-
-def get_players(heuristics, K, nsamples):
-    players = []
-    for i, h in enumerate(heuristics):
-        hfcn = lambda s, snext: linear_heuristic(s, snext, h)
-        player = MonteCarloHeuristicRolloutAgent(name='P{}'.format(i+1), K=K, nsamples=nsamples, heuristic=hfcn)
-        players.append(player)
-    return players
-
-def play(popsize, K, nsamples):
-    from play import play_game
-    heuristics = [initial_heuristic() if i > 0 else random_heuristic() for i in range(popsize)]
-    players = get_players(heuristics, K, nsamples)
-    outcomes = []
-    for i in range(1,len(heuristics)):
-        print('Opponent #{}'.format(i))
-        outcome = play_game([players[0], players[i]], render_mode=None)
-        outcomes.append(outcome)
-        print(outcome)
-    print(outcomes)
-
-if __name__ == '__main__':
-    play(popsize=10, K=2, nsamples=1000)
