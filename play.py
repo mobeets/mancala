@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mancala import Mancala
 from mcr import MonteCarloRolloutAgent
 from mmcts import MCTSMancalaAgent
+from mch import MonteCarloHeuristicRolloutAgent
 
 class HumanAgent:
     def get_action(self, state, index=None):
@@ -42,12 +43,11 @@ def plot(players, outfile):
     plt.legend()
     plt.savefig(outfile)
 
-def play(player_types, nsamples, plotfile=None, verbose=True, render_mode='human'):
+def play_game(players, render_mode=None):
     env = Mancala(render_mode=render_mode, render_unicode=True)
     state, _ = env.reset()
     terminated = False
 
-    players = get_players(player_types, verbose=verbose, nsamples=nsamples)
     while not terminated:
         action = players[int(state[-1])-1].get_action(state, index=env.index)
         state, _, terminated, _, _ = env.step(action)
@@ -56,10 +56,15 @@ def play(player_types, nsamples, plotfile=None, verbose=True, render_mode='human
         for player in players:
             if hasattr(player, 'update'):
                 player.update(action)
+    return Mancala.get_winner(env.state)
+
+def play(player_types, nsamples, plotfile=None, verbose=True, render_mode='human'):
+    players = get_players(player_types, verbose=verbose, nsamples=nsamples)
+    outcome = play_game(players, render_mode)
 
     if plotfile:
         plot(players, plotfile)
-    return Mancala.get_winner(env.state)
+    return outcome
 
 if __name__ == "__main__":
     import argparse
